@@ -1,0 +1,23 @@
+name = "LibAwsChecksums"
+uuid = "332a3e40-df62-419b-9f04-2cb73588ccaf"
+version = "1.0.0"
+
+[deps]
+CEnum = "fa961155-64e5-5f13-b03f-caf6b980ea82"
+LibAwsCommon = "c6e421ba-b5f8-4792-a1c4-42948de3ed9d"
+aws_checksums_jll = "b2a88e68-78e7-5e94-8c20-c02986ec140e"
+
+[compat]
+Aqua = "0.7"
+CEnum = "0.5"
+LibAwsCommon = "=1.0.0"
+aws_checksums_jll = "=0.1.17"
+julia = "1.6"
+
+[extras]
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+CRC32c = "8bf52ea8-c179-5cab-976a-9e18b702a9bc"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Aqua", "CRC32c", "Test"]
