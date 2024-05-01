@@ -2,10 +2,9 @@ using Clang.Generators
 using Clang.JLLEnvs
 using JLLPrefixes
 import aws_c_common_jll, aws_checksums_jll
+using LibAwsCommon
 
 cd(@__DIR__)
-
-const refs_to_remove = []
 
 # This is called if the docs generated from the extract_c_comment_style method did not generate any lines.
 # We need to generate at least some docs so that cross-references work with Documenter.jl.
@@ -21,25 +20,27 @@ function get_docs(node, docs)
         return ["Documentation not found."]
     end
 
-    # remove references to things which don't exist because it causes Documenter.jl's cross_references check to fail
-    for ref in refs_to_remove
-        for doci in eachindex(docs)
-            docs[doci] = replace(docs[doci], "[`$ref`](@ref)" => "`$ref`")
-        end
-    end
-
-    # # fix other random stuff
-    # for doci in eachindex(docs)
-    #     # fix some code that gets bogus references inserted
-    #     docs[doci] = replace(docs[doci], "for (struct [`aws_hash_iter`](@ref) iter = [`aws_hash_iter_begin`](@ref)(&map); ![`aws_hash_iter_done`](@ref)(&iter); [`aws_hash_iter_next`](@ref)(&iter)) { const key\\_type key = *(const key\\_type *)iter.element.key; value\\_type value = *(value\\_type *)iter.element.value; // etc. }" => "`for (struct aws_hash_iter iter = aws_hash_iter_begin(&map); !aws_hash_iter_done(&iter); aws_hash_iter_next(&iter)) { const key\\_type key = *(const key\\_type *)iter.element.key; value\\_type value = *(value\\_type *)iter.element.value; // etc. }`")
-    # end
-
     return docs
 end
 
 function should_skip_target(target)
     # aws_c_common_jll does not support i686 windows https://github.com/JuliaPackaging/Yggdrasil/blob/bbab3a916ae5543902b025a4a873cf9ee4a7de68/A/aws_c_common/build_tarballs.jl#L48-L49
     return target == "i686-w64-mingw32"
+end
+
+const deps_jlls = [aws_c_common_jll]
+const deps = [LibAwsCommon]
+const deps_names = sort(collect(Iterators.flatten(names.(deps))))
+
+# clang can emit code for forward declarations of structs defined in our dependencies. we need to skip those, otherwise
+# we'll have duplicate struct definitions.
+function skip_nodes_in_dependencies!(dag::ExprDAG)
+    replace!(get_nodes(dag)) do node
+        if insorted(node.id, deps_names)
+            return ExprNode(node.id, Generators.Skip(), node.cursor, Expr[], node.adj)
+        end
+        return node
+    end
 end
 
 # download toolchains in parallel
@@ -59,8 +60,10 @@ for target in JLLEnvs.JLL_ENV_TRIPLES
     options["general"]["callback_documentation"] = get_docs
 
     args = get_default_args(target)
-    inc = JLLEnvs.get_pkg_include_dir(aws_c_common_jll, target)
-    push!(args, "-isystem$inc")
+    for dep in deps_jlls
+        inc = JLLEnvs.get_pkg_include_dir(dep, target)
+        push!(args, "-isystem$inc")
+    end
 
     header_dirs = []
     inc = JLLEnvs.get_pkg_include_dir(aws_checksums_jll, target)
@@ -80,5 +83,7 @@ for target in JLLEnvs.JLL_ENV_TRIPLES
     unique!(headers)
 
     ctx = create_context(headers, args, options)
-    build!(ctx)
+    build!(ctx, BUILDSTAGE_NO_PRINTING)
+    skip_nodes_in_dependencies!(ctx.dag)
+    build!(ctx, BUILDSTAGE_PRINTING_ONLY)
 end
