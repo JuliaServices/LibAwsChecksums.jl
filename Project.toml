@@ -10,7 +10,7 @@ aws_checksums_jll = "b2a88e68-78e7-5e94-8c20-c02986ec140e"
 [compat]
 Aqua = "0.7"
 CEnum = "0.5"
-LibAwsCommon = "=1.0.0"
+LibAwsCommon = "=1.0.0, 1"
 aws_checksums_jll = "=0.1.17"
 julia = "1.6"
 
