@@ -1,4 +1,4 @@
-name: Auto update AWS LibAwsCheckSums package
+name: Auto update AWS LibAwsChecksums package
 
 on:
   schedule:
@@ -10,13 +10,13 @@ permissions:
   pull-requests: write
 
 env:
-  LIBAWS_REPO: "JuliaServices/LibAwsCheckSums.jl"
+  LIBAWS_REPO: "JuliaServices/LibAwsChecksums.jl"
   JLL_REPO: "JuliaBinaryWrappers/aws_checksums_jll.jl"
   LIBRARY_NAME: "aws_checksums"
   JLL_NAME: "aws_checksums_jll"
 
 jobs:
-  update-aws-package:
+  update-awschecksums-package:
     runs-on: ubuntu-latest
     
     steps:
@@ -103,4 +103,4 @@ jobs:
               - ${{ env.bindings_changed == 'true' && '✅ Updated bindings' || '⚠️ No bindings changes detected' }}
 
           reviewers: quinnj, Octogonapus
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.ORG_PAT }}
