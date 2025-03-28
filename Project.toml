@@ -1,6 +1,6 @@
 name = "LibAwsChecksums"
 uuid = "332a3e40-df62-419b-9f04-2cb73588ccaf"
-version = "1.1.1"
+version = "1.1.2"
 
 [deps]
 CEnum = "fa961155-64e5-5f13-b03f-caf6b980ea82"
@@ -11,7 +11,7 @@ aws_checksums_jll = "b2a88e68-78e7-5e94-8c20-c02986ec140e"
 Aqua = "0.7"
 CEnum = "0.5"
 LibAwsCommon = "1.2"
-aws_checksums_jll = "=0.2.3"
+aws_checksums_jll = "=0.2.5"
 julia = "1.6"
 
 [extras]
