@@ -1,6 +1,34 @@
 using CEnum
 
 """
+    aws_checksums_library_init(allocator)
+
+Initializes internal data structures used by aws-checksums. MUST be called before using any functionality in aws-checksums. Note: historically aws-checksums lazily initialized stuff and things worked without init. However, DO NOT rely on that behavior and explicitly call init instead.
+
+### Prototype
+```c
+void aws_checksums_library_init(struct aws_allocator *allocator);
+```
+"""
+function aws_checksums_library_init(allocator)
+    ccall((:aws_checksums_library_init, libaws_checksums), Cvoid, (Ptr{Cvoid},), allocator)
+end
+
+"""
+    aws_checksums_library_clean_up()
+
+Shuts down the internal data structures used by aws-checksums.
+
+### Prototype
+```c
+void aws_checksums_library_clean_up(void);
+```
+"""
+function aws_checksums_library_clean_up()
+    ccall((:aws_checksums_library_clean_up, libaws_checksums), Cvoid, ())
+end
+
+"""
     aws_checksums_crc32(input, length, previous_crc32)
 
 The entry point function to perform a CRC32 (Ethernet, gzip) computation. Selects a suitable implementation based on hardware capabilities. Pass 0 in the previousCrc32 parameter as an initial value unless continuing to update a running crc in a subsequent call.
