@@ -1,9 +1,7 @@
 name: Auto update AWS LibAwsChecksums package
 
 on:
-  schedule:
-    - cron: '0 * * * *'  # Run every hour
-  workflow_dispatch:
+  push:
 
 permissions:
   contents: write
@@ -22,6 +20,13 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      # Configure core dumps
+      - run: |
+          sudo mkdir -p /var/crash
+          sudo chown "$USER":"$USER" /var/crash
+          echo '/var/crash/core.%t.%s.%e.%p' | sudo tee /proc/sys/kernel/core_pattern
+          ls -l /var
+
       - name: Checkout LibAwsChecksums repository
         uses: actions/checkout@v4
         with:
@@ -80,34 +85,10 @@ jobs:
           cd ${{ env.LIBAWS_PATH }}
           ./gen/generate.sh
 
-      - name: Check for Changes in Bindings
-        if: env.update_needed == 'true'
-        id: check_bindings
-        run: |
-          cd ${{ env.LIBAWS_PATH }}
-          if git diff --quiet; then
-            echo "No bindings changes detected."
-            echo "bindings_changed=false" >> $GITHUB_ENV
-          else
-            echo "Bindings changed."
-            echo "bindings_changed=true" >> $GITHUB_ENV
-          fi
-
-      - name: Commit and Open PR
-        if: env.bindings_changed == 'true'
-        uses: peter-evans/create-pull-request@v6
+      - name: Upload core dumps
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
         with:
-          path: ${{ env.LIBAWS_PATH }}
-          branch: update-${{ env.JLL_NAME }}-${{ env.JLL_VERSION }}
-          commit-message: "Update ${{ env.JLL_NAME }} to version ${{ env.JLL_VERSION }}"
-          title: "Update ${{ env.JLL_NAME }} to version ${{ env.JLL_VERSION }}"
-          body: |
-            This PR updates the JLL dependency and regenerates bindings automatically.
-
-            - Updated **${{ env.JLL_NAME }}** to version **${{ env.JLL_VERSION }}**
-            - Updated **${{ env.LIBAWS_REPO }}** version number
-            - **Bindings regeneration:**
-              - ${{ env.bindings_changed == 'true' && '✅ Updated bindings' || '⚠️ No bindings changes detected' }}
-
-          reviewers: quinnj, Octogonapus
-          token: ${{ secrets.ORG_PAT }}
+          name: core-dumps-${{ matrix.group }}
+          path: /var/crash
+          retention-days: 3
