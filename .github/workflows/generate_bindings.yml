@@ -83,12 +83,13 @@ jobs:
         if: env.update_needed == 'true'
         run: |
           cd ${{ env.LIBAWS_PATH }}
+          ulimit -c unlimited
           ./gen/generate.sh
 
       - name: Upload core dumps
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4
         with:
-          name: core-dumps-${{ matrix.group }}
+          name: latest-core-dump
           path: /var/crash
           retention-days: 3
