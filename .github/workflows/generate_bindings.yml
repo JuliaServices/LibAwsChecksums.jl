@@ -79,6 +79,10 @@ jobs:
 
       - uses: julia-actions/cache@v2
 
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: '1.11.5'
+
       - name: Run the generator
         if: env.update_needed == 'true'
         run: |
