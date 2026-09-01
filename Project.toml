@@ -1,6 +1,6 @@
 name = "LibAwsChecksums"
 uuid = "332a3e40-df62-419b-9f04-2cb73588ccaf"
-version = "1.1.6"
+version = "1.2.0"
 
 [deps]
 CEnum = "fa961155-64e5-5f13-b03f-caf6b980ea82"
